@@ -9,9 +9,9 @@ import re
 class DBTest():
     def _stopwatch(self, fn, *args, msg=''):
         s = time.time()
-        fn(*args)
+        ret = fn(*args)
         f = time.time()
-        return f-s
+        return f-s, ret
 
     def run(self, size, count, batch, times=1):
         pass

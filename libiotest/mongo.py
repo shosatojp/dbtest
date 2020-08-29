@@ -11,18 +11,11 @@ import random
 from pymongo import ASCENDING, MongoClient, UpdateOne
 import shutil
 import time
+import matplotlib.pyplot as plt
 
 
 class MongoTest(DBTest):
     def __init__(self, dir, host, port) -> None:
-        self.dir = os.path.join(dir, 'mongodb-test-'+str(int(time.time())))
-        if os.path.exists(self.dir):
-            ans = input(f'remove dir : {self.dir} ? [y/N]')
-            if ans.lower() == 'y':
-                shutil.rmtree(self.dir)
-            else:
-                exit(1)
-        os.mkdir(self.dir)
         self.host = host
         self.port = port
         self.dummy = None
@@ -36,7 +29,7 @@ class MongoTest(DBTest):
         cur = conn['db']['collection']
         cur.create_index([('id', ASCENDING)], unique=True)
 
-        t = self._stopwatch(fn, cur)
+        t, ret = self._stopwatch(fn, cur)
         result = {
             what: {
                 'name': 'mongodb',
@@ -64,6 +57,8 @@ class MongoTest(DBTest):
 
         ret = []
         for _ in range(times):
+            self.dir = os.path.join(dir, 'mongodb-test-'+str(int(time.time())))
+            os.mkdir(self.dir)
             result = {}
             result.update(self._run1(self._seq_write, what='seq_write'))
             result.update(self._run1(self._rand_read, what='rand_read'))

@@ -8,6 +8,7 @@ import math
 import random
 import time
 import matplotlib.pyplot as plt
+import matplotlib.figure
 
 
 class SQLite3Test(DBTest):
@@ -20,7 +21,7 @@ class SQLite3Test(DBTest):
         conn = sqlite3.connect(self.path)
         cur = conn.cursor()
 
-        t = self._stopwatch(fn, conn, cur)
+        t, ret = self._stopwatch(fn, conn, cur)
         result = {
             what: {
                 'name': 'sqlite3',
