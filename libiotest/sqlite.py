@@ -1,20 +1,17 @@
 from sqlite3.dbapi2 import Connection, Cursor
-from lib import DBTest
+from .lib import DBTest
 import sqlite3
 import os
 from tqdm import tqdm
 import subprocess
 import math
 import random
+import time
 
 
 class SQLite3Test(DBTest):
-    def __init__(self, dir, size, count, batch) -> None:
+    def __init__(self, dir) -> None:
         self.dir = dir
-        self.size = size
-        self.count = count
-        self.batch = batch
-        self.path = os.path.join(self.dir, f'sqlite3-test-{self.size}-{count}-{batch}.db')
         return
 
     def _run1(self, fn, what=''):
@@ -23,26 +20,46 @@ class SQLite3Test(DBTest):
         cur = conn.cursor()
 
         t = self._stopwatch(fn, conn, cur)
-        result = f'sqlite3 {what:10}: size={self.size}, count={self.count}, batch={self.batch} : {int(t*1000)/1000}s, {int(self.count/(t+1e-3))}/s\n'
-
+        result = {
+            what: {
+                'name': 'sqlite3',
+                'what': what,
+                'size': self.size,
+                'count': self.count,
+                'batch': self.batch,
+                'time': t,
+                'speed': self.count/(t+1e-3),
+            }
+        }
+        print(result)
         cur.close()
         conn.close()
         return result
 
-    def run(self):
-        conn = sqlite3.connect(self.path)
-        cur = conn.cursor()
-        cur.execute('create table if not exists test(id integer,data blob)')
-        cur.close()
-        conn.close()
+    def run(self, size, count, batch, times=1):
+        self.size = size
+        self.count = count
+        self.batch = batch
+        self.path = os.path.join(self.dir, f'sqlite3-test-{time.time()}-{self.size}-{count}-{batch}.db')
+        print('creating dummy data...')
+        self.dummy = [os.urandom(self.size) for _ in range(self.count)]
 
-        result = ''
-        result += self._run1(self._seq_write, what='seq_write')
-        result += self._run1(self._seq_read, what='seq_read')
-        result += self._run1(self._rand_read, what='rand_read')
-        result += self._run1(self._rand_write, what='rand_write')
-        os.remove(self.path)
-        return result
+        ret = []
+        for _ in range(times):
+            conn = sqlite3.connect(self.path)
+            cur = conn.cursor()
+            cur.execute('create table if not exists test(id integer,data blob)')
+            cur.close()
+            conn.close()
+
+            result = {}
+            result.update(self._run1(self._seq_write, what='seq_write'))
+            result.update(self._run1(self._seq_read, what='seq_read'))
+            result.update(self._run1(self._rand_read, what='rand_read'))
+            result.update(self._run1(self._rand_write, what='rand_write'))
+            os.remove(self.path)
+            ret.append(result)
+        return ret
 
     def _seq_write(self, conn: Connection, cur: Cursor):
         print('sqlite write')
@@ -51,7 +68,7 @@ class SQLite3Test(DBTest):
                 bar.update(n=self.batch)
                 buffer = []
                 for j in range(i, min(i+self.batch, self.count)):
-                    buffer.append((j, os.urandom(self.size)))
+                    buffer.append((j, self.dummy[j]))
                 cur.executemany('insert into test values (?,?)', buffer)
                 conn.commit()
 
@@ -59,8 +76,7 @@ class SQLite3Test(DBTest):
         print('sqlite seq read')
         with tqdm(total=self.count) as bar:
             cur.execute('select * from test')
-            for _ in range(self.count):
-                cur.fetchone()
+            for _ in cur:
                 bar.update(1)
 
     def _rand_read(self, conn: Connection, cur: Cursor):
@@ -78,13 +94,15 @@ class SQLite3Test(DBTest):
             for i in range(0, self.count, self.batch):
                 bar.update(n=self.batch)
                 buffer = []
+                id = math.floor(random.random()*self.count)
                 for j in range(i, min(i+self.batch, self.count)):
-                    buffer.append((math.floor(random.random()*self.count),
-                                   os.urandom(self.size)))
+                    buffer.append((id,
+                                   self.dummy[id]))
                 cur.executemany('update test set data = ? where id = ?', buffer)
                 conn.commit()
 
 
 if __name__ == "__main__":
-    t = SQLite3Test('/mnt/data/datasets/test', size=150*1024, count=1000, batch=100)
+    # t = SQLite3Test('/mnt/data', size=100*1024, count=10000, batch=100)
+    t = SQLite3Test('/home/sho', size=100*1024, count=10000, batch=100)
     print(t.run())
