@@ -57,20 +57,24 @@ class MongoTest(DBTest):
         self.dummy = [os.urandom(self.size) for _ in range(self.count)]
 
         ret = []
-        for _ in range(times):
+        for i in range(times):
             self.path = os.path.join(self.dir, 'mongodb-test-'+str(int(time.time())))
             os.mkdir(self.path)
+            self.fig = plt.figure(figsize=(12, 8), dpi=300)
             result = {}
             result.update(self._run1(self._seq_write, what='seq_write'))
             result.update(self._run1(self._rand_read, what='rand_read'))
             result.update(self._run1(self._seq_read, what='seq_read'))
             result.update(self._run1(self._rand_write, what='rand_write'))
+            self.fig.suptitle(f'mongo (size={size},count={count},batch={batch}) #{i+1}')
+            self.fig.savefig(f'mongo-{int(time.time())}-{self.size}-{count}-{batch}-{i+1}.png')
             shutil.rmtree(self.path)
             ret.append(result)
         return ret
 
     def _seq_write(self, col: Collection):
         print('mongodb write')
+        x, y, start = [], [], time.time()
         with tqdm(total=self.count) as bar:
             for i in range(0, self.count, self.batch):
                 bar.update(n=self.batch)
@@ -78,28 +82,49 @@ class MongoTest(DBTest):
                 for j in range(i, min(i+self.batch, self.count)):
                     buffer.append({'id': j, 'data': self.dummy[j]})
                 col.insert_many(buffer)
+                x.append(time.time()-start)
+                y.append(min(i+self.batch, self.count))
+
+        ax = self.fig.add_subplot(2, 2, 2)
+        ax.plot(x, y)
+        ax.set_title('seq write')
 
     def _seq_read(self, col: Collection):
         print('mongodb seq read')
+        x, y, start = [], [], time.time()
         with tqdm(total=self.count) as bar:
             cur = col.find({})
             cur.batch_size(self.batch)
-            for _ in cur:
+            for i, _ in enumerate(cur):
                 bar.update(1)
+                x.append(time.time()-start)
+                y.append(i)
+
+        ax = self.fig.add_subplot(2, 2, 1)
+        ax.plot(x, y)
+        ax.set_title('seq read')
 
     def _rand_read(self, col: Collection):
         print('mongodb rand read')
+        x, y, start = [], [], time.time()
         with tqdm(total=self.count) as bar:
-            for _ in range(0, self.count, self.batch):
+            for i in range(0, self.count, self.batch):
                 cur = col.find({
                     'id': {'$in':  [math.floor(random.random()*self.count) for _ in range(self.batch)]}
                 })
                 cur.batch_size(self.batch)
-                for _ in cur:
+                for _, _ in enumerate(cur):
                     bar.update(1)
+                x.append(time.time()-start)
+                y.append(min(i+self.batch, self.count))
+
+        ax = self.fig.add_subplot(2, 2, 3)
+        ax.plot(x, y)
+        ax.set_title('rand read')
 
     def _rand_write(self, col: Collection):
         print('mongodb rand write')
+        x, y, start = [], [], time.time()
         with tqdm(total=self.count) as bar:
             for i in range(0, self.count, self.batch):
                 bar.update(n=self.batch)
@@ -113,3 +138,9 @@ class MongoTest(DBTest):
                         )
                     )
                 col.bulk_write(buffer)
+                x.append(time.time()-start)
+                y.append(min(i+self.batch, self.count))
+
+        ax = self.fig.add_subplot(2, 2, 4)
+        ax.plot(x, y)
+        ax.set_title('rand write')
