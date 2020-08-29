@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 
 class MongoTest(DBTest):
     def __init__(self, dir, host, port) -> None:
+        self.dir = dir
         self.host = host
         self.port = port
         self.dummy = None
@@ -23,7 +24,7 @@ class MongoTest(DBTest):
 
     def _run1(self, fn, what=''):
         drop_caches()
-        p = subprocess.Popen(['mongod', '--dbpath', self.dir, '--bind_ip', self.host, '--port', str(self.port), '--quiet'])
+        p = subprocess.Popen(['mongod', '--dbpath', self.path, '--bind_ip', self.host, '--port', str(self.port), '--quiet'])
         sleep(3)
         conn = MongoClient(self.host, self.port)
         cur = conn['db']['collection']
@@ -57,14 +58,14 @@ class MongoTest(DBTest):
 
         ret = []
         for _ in range(times):
-            self.dir = os.path.join(dir, 'mongodb-test-'+str(int(time.time())))
-            os.mkdir(self.dir)
+            self.path = os.path.join(dir, 'mongodb-test-'+str(int(time.time())))
+            os.mkdir(self.path)
             result = {}
             result.update(self._run1(self._seq_write, what='seq_write'))
             result.update(self._run1(self._rand_read, what='rand_read'))
             result.update(self._run1(self._seq_read, what='seq_read'))
             result.update(self._run1(self._rand_write, what='rand_write'))
-            shutil.rmtree(self.dir)
+            shutil.rmtree(self.path)
             ret.append(result)
         return ret
 
