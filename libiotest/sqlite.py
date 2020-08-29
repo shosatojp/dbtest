@@ -95,8 +95,8 @@ class SQLite3Test(DBTest):
             for i in range(0, self.count, self.batch):
                 bar.update(n=self.batch)
                 buffer = []
-                id = math.floor(random.random()*self.count)
                 for j in range(i, min(i+self.batch, self.count)):
+                    id = math.floor(random.random()*self.count)
                     buffer.append((id,
                                    self.dummy[id]))
                 cur.executemany('update test set data = ? where id = ?', buffer)
