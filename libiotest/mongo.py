@@ -58,7 +58,7 @@ class MongoTest(DBTest):
 
         ret = []
         for _ in range(times):
-            self.path = os.path.join(dir, 'mongodb-test-'+str(int(time.time())))
+            self.path = os.path.join(self.dir, 'mongodb-test-'+str(int(time.time())))
             os.mkdir(self.path)
             result = {}
             result.update(self._run1(self._seq_write, what='seq_write'))
