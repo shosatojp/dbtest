@@ -7,6 +7,7 @@ import subprocess
 import math
 import random
 import time
+import matplotlib.pyplot as plt
 
 
 class SQLite3Test(DBTest):

@@ -64,7 +64,6 @@ class MongoTest(DBTest):
 
         ret = []
         for _ in range(times):
-            os.mkdir(self.dir)
             result = {}
             result.update(self._run1(self._seq_write, what='seq_write'))
             result.update(self._run1(self._rand_read, what='rand_read'))
