@@ -97,7 +97,7 @@ class SQLite3Test(DBTest):
                 buffer = []
                 for j in range(i, min(i+self.batch, self.count)):
                     id = math.floor(random.random()*self.count)
-                    buffer.append((id,
-                                   self.dummy[id]))
+                    buffer.append((self.dummy[id],
+                                   id))
                 cur.executemany('update test set data = ? where id = ?', buffer)
                 conn.commit()
