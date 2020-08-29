@@ -2,7 +2,7 @@ from pprint import pprint
 from time import sleep
 
 from pymongo.collection import Collection
-from .lib import DBTest
+from .lib import DBTest, drop_caches
 import os
 from tqdm import tqdm
 import subprocess
@@ -29,7 +29,7 @@ class MongoTest(DBTest):
         return
 
     def _run1(self, fn, what=''):
-        subprocess.call(['bash', './drop_caches.sh'])
+        drop_caches()
         p = subprocess.Popen(['mongod', '--dbpath', self.dir, '--bind_ip', self.host, '--port', str(self.port), '--quiet'])
         sleep(3)
         conn = MongoClient(self.host, self.port)

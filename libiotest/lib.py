@@ -1,5 +1,6 @@
 import math
 import itertools
+import subprocess
 from typing import Tuple
 import time
 import re
@@ -34,3 +35,7 @@ def print_result(result, type, size, count, batch, times):
     for what in ['seq_write', 'seq_read', 'rand_write', 'rand_read']:
         sum_time = sum(map(lambda e: e[what]['time'], result))
         print(f'{what:10} {int(count/(sum_time/times+1e-3)):>7}/s')
+
+
+def drop_caches():
+    subprocess.call(['bash', './drop_caches.sh'])

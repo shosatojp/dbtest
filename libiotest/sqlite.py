@@ -1,5 +1,5 @@
 from sqlite3.dbapi2 import Connection, Cursor
-from .lib import DBTest
+from .lib import DBTest, drop_caches
 import sqlite3
 import os
 from tqdm import tqdm
@@ -15,7 +15,7 @@ class SQLite3Test(DBTest):
         return
 
     def _run1(self, fn, what=''):
-        subprocess.call(['bash', './drop_caches.sh'])
+        drop_caches()
         conn = sqlite3.connect(self.path)
         cur = conn.cursor()
 
@@ -48,7 +48,8 @@ class SQLite3Test(DBTest):
         for _ in range(times):
             conn = sqlite3.connect(self.path)
             cur = conn.cursor()
-            cur.execute('create table if not exists test(id integer,data blob)')
+            cur.execute('create table test(id integer,data blob)')
+            cur.execute('create index idindex on test(id)')
             cur.close()
             conn.close()
 
