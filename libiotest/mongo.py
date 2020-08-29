@@ -118,15 +118,3 @@ class MongoTest(DBTest):
                         )
                     )
                 col.bulk_write(buffer)
-
-
-if __name__ == "__main__":
-    t = MongoTest(
-        '/home/sho/dbtest',
-        host='localhost',
-        port=8889,
-        size=100*1024,
-        count=10000,
-        batch=100
-    )
-    pprint(t.run())

@@ -101,9 +101,3 @@ class SQLite3Test(DBTest):
                                    self.dummy[id]))
                 cur.executemany('update test set data = ? where id = ?', buffer)
                 conn.commit()
-
-
-if __name__ == "__main__":
-    # t = SQLite3Test('/mnt/data', size=100*1024, count=10000, batch=100)
-    t = SQLite3Test('/home/sho', size=100*1024, count=10000, batch=100)
-    print(t.run())
