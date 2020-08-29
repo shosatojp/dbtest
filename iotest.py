@@ -27,4 +27,4 @@ count = parse_size(args.count)
 
 result = test.run(size, count, args.batch, args.times)
 
-print_result(result, args.type, size, count, args.batch, args.times)
+print_result(result, args.dir, args.type, size, count, args.batch, args.times)

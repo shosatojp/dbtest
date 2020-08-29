@@ -29,9 +29,9 @@ def parse_size(src: str):
         exit(0)
 
 
-def print_result(result, type, size, count, batch, times):
+def print_result(result, dir, type, size, count, batch, times):
     print()
-    print(f'{type}: (size={size}, count={count}, batch={batch}, times={times})')
+    print(f'{type}: (dir={dir}, size={size}, count={count}, batch={batch}, times={times})')
     for what in ['seq_write', 'seq_read', 'rand_write', 'rand_read']:
         sum_time = sum(map(lambda e: e[what]['time'], result))
         print(f'{what:10} {int(count/(sum_time/times+1e-3)):>7}/s')
